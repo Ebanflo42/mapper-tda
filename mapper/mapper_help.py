@@ -23,7 +23,7 @@ def mkdir_p(path):
 
 
 def plot_graph(G, filename='prova.png', values=None, colorbar_obj=None):
-    
+
     func_types_dic = {
                 'spring' : nx.spring_layout,
                 'random' : nx.random_layout,
@@ -38,7 +38,7 @@ def plot_graph(G, filename='prova.png', values=None, colorbar_obj=None):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111)
 
-    color_nodes = [values.get(node, 0.2) for node in G.nodes()] 
+    color_nodes = [values.get(node, 0.2) for node in G.nodes()]
 
     pos = func_types_dic[params.plot_type_str](G)
 
@@ -75,7 +75,7 @@ def plot_hist(hist, bins, fname='hist.png', threshold=None, tit_str=''):
 
     if threshold:
         ax.axvline(threshold, color='k', linestyle='--', lw=2)
-    
+
     plt.title(tit_str)
     fig.savefig(fname, format='png')
     plt.close()
@@ -99,6 +99,3 @@ def plot_clustering(obj, data, filename, axis_str=('', ''), tit_str_add='', anot
     fig.savefig(filename, format='png')
 
     plt.close()
-
-
-

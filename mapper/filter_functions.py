@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
-import explore_mapper as em
+import mapper as mp
 
 try:
     import params
 except ImportError:
     import params_default as params
 
-class EccentricityP(em.FilterFuctionTDA):
+class EccentricityP(mp.FilterFuctionTDA):
 
     def __init__(self, data):
         self.P = params.eccentricity_P
@@ -31,7 +31,7 @@ class EccentricityP(em.FilterFuctionTDA):
 
 
 
-class AxisProj(em.FilterFuctionTDA):
+class AxisProj(mp.FilterFuctionTDA):
 
     def __init__(self, data, mode='x'):
         self.mode = mode
