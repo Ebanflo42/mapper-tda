@@ -1,56 +1,40 @@
 import pandas as pd
 import numpy as np
-import abc
+import types
 
-try:
-    import params
-except ImportError:
-    import params_default as params
-import matplotlib.colors as colors
-import matplotlib.cm as cmx
-import matplotlib.pyplot as plt
-from mapper_help import *
 
 class Mapper:
-    """
-    Implementation of the Mapper class, TDA techniques.
-    """
 
-    def __init__(self, data, Clustering, FilterFunction, overlap):
+    def __init__(self, data, Clustering, num_bins, filter_function, overlap):
 
-        self.N = params.N
-
+        self.num_bins = num_bins
         self.overlap = overlap
 
         self.data = data
         self.indices = np.arange(len(data))
 
-        self.filter_class = FilterFunction
+        self.filter_function = filter_function
         self.cluster_class = Clustering
 
         self.filtered_values = None
         self.clusters = None
-        self.cluster_graph = None
-        self.centroid_graph = None
+        self.centroids = None
+        self.graph = None
 
-        self._implem_check()
+        self._check_implem()
 
         self.run_mapper()
 
-    def _implem_check(self):
-
-        if not issubclass(self.cluster_class, ClusteringTDA):
-            raise TypeError('Clustering class must implement \'ClusteringTDA\' abstract class.')
-
-        if not issubclass(self.filter_class, FilterFuctionTDA):
-            raise TypeError('Filter Function class must implement \'FilterFunctionTDA\' abstract class.')
+    def _check_implem(self):
+        if isinstance(self.filter_function, types.LambdaType):
+            return
+        else: raise TypeError('`filter_function` must be callable.')
 
     def _apply_filter_function(self):
-        fm = []
-        filter_obj = self.filter_class(self.data)
 
+        fm = []
         for i in self.indices:
-            fm.append(filter_obj.filter_func(self.data[i:i+1], self.data))
+            fm.append(self.filter_function(self.data[i]))
 
         return pd.Series(fm, index=self.indices).sort_values()
 
@@ -64,9 +48,9 @@ class Mapper:
         start = self.filtered_values.iloc[0]
 
         # Size of bins, bin overlap size, bins
-        bin_len = (finish-start)/self.N
+        bin_len = (finish-start)/self.num_bins
         bin_over = self.overlap*bin_len
-        bins = [(start + (bin_len-bin_over)*i, start + bin_len*(i+1)) for i in range(self.N)]
+        bins = [(start + (bin_len-bin_over)*i, start + bin_len*(i+1)) for i in range(self.num_bins)]
 
         binned_dict = {}
         for edge in bins:
@@ -103,12 +87,6 @@ class Mapper:
                 counter += 1
 
             partial_clusters[i] = global_cluster_names
-
-        """
-        if params.CLUSTERING_PLOT_BOOL:
-            for i, c in enumerate(clusters):
-                c.make_plot(plot_name=params.PLOT_PATH+'hist_%s.png'%(i))
-        """
 
         return partial_clusters
 
@@ -147,53 +125,11 @@ class Mapper:
 
     def run_mapper(self):
 
-        print("Applying Filter Function...")
-        print("--------------------------------")
-
         # Store filter function results array
         self.filtered_values = self._apply_filter_function()
-
-        print("Start Partial Clustering...")
-        print("--------------------------------")
 
         # Apply clustering to each of the bins
         partial_clusters = self._apply_clustering()
 
-        print("Building Graph...")
-        print("--------------------------------")
-
         # Build edges between clusters of different bins if they share points
         self._build_graph(partial_clusters)
-
-class ClusteringTDA(abc.ABC):
-
-    """
-    Abstract Clustering class to be implemented for Mapper
-    """
-
-    def __init__(self, data):
-        pass
-
-    @abc.abstractmethod
-    def run_clustering(self):
-        pass
-
-    @abc.abstractmethod
-    def make_plot(self, plot_name):
-        pass
-
-class FilterFuctionTDA(abc.ABC):
-
-    """
-    Abstract Filter Function class to be implemented for Mapper
-    """
-
-    def __init__(self, data):
-        pass
-
-    @abc.abstractmethod
-    def filter_func(self, *args):
-        pass
-
-if __name__ == '__main__':
-    pass
