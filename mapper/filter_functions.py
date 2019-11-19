@@ -22,5 +22,5 @@ def eccentricity_p(p, data):
         return (lambda x: _fin_ecc(x, data))
 
 
-def AxisProj(coordinate):
+def axis_proj(coordinate):
     return (lambda x: x[coordinate])

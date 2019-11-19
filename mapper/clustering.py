@@ -1,8 +1,20 @@
+from scipy.spatial.distance import cdist, pdist
+from pyclustering.cluster.dbscan import dbscan
 import pandas as pd
 import numpy as np
-import mapper as mp
-from scipy.spatial.distance import cdist, pdist
+import abc
 
+
+
+#Abstract Clustering class to be implemented for Mapper
+class ClusteringTDA(abc.ABC):
+
+    def __init__(self, data, num_bins, eps, neighbors):
+        pass
+
+    @abc.abstractmethod
+    def run_clustering(self):
+        pass
 
 def find_opt_threshold(hist, bin_edges, limit=3):
 
@@ -23,9 +35,9 @@ def find_opt_threshold(hist, bin_edges, limit=3):
     return bin_edges[-1]
 
 
-class SingleLinkageClustering:
+class SingleLinkageClustering(ClusteringTDA):
 
-    def __init__(self, data, num_bins):
+    def __init__(self, data, num_bins, eps, neighbors):
         self.data = data
         self.k = num_bins
         self.resolution = 0
@@ -95,9 +107,9 @@ class SingleLinkageClustering:
                 cluster_name += 1
 
 
-class NNC:
+class NNC(ClusteringTDA):
 
-    def __init__(self, data, num_bins):
+    def __init__(self, data, num_bins, eps, neighbors):
         self.data = data
         self.k = num_bins
 
@@ -116,9 +128,6 @@ class NNC:
                 self.c_to_ind.pop(c, None)
 
         return self.c_to_ind
-
-    def make_plot(self, plot_name):
-        pass
 
     def cdistance_norm(self, a, b):
         return cdist(a, b, metric='seuclidean', V=self.var_vec)[0]
@@ -156,3 +165,12 @@ class NNC:
                 self.ind_to_c.update(clus_mbrship)
 
                 cluster_name += 1
+
+class DBSCAN(ClusteringTDA):
+
+    def __init__(self, data, num_bins, eps, neighbors):
+        self.clusterer = dbscan(data, eps, neighbors, True)
+
+    def run_clustering(self):
+        self.clusterer.process()
+        return self.clusterer.get_clusters()

@@ -3,13 +3,24 @@ import pandas as pd
 import numpy as np
 import types
 
+import clustering as cl
 
 class Mapper:
 
-    def __init__(self, data, Clustering, num_bins, filter_function, overlap):
+    def __init__(self,
+                 data,
+                 filter_function,
+                 overlap,
+                 Clustering,
+                 num_bins = 10,
+                 eps = 0.01,
+                 neighbors = 10):
+
+        self.overlap = overlap
 
         self.num_bins = num_bins
-        self.overlap = overlap
+        self.eps = eps
+        self.neighbors = neighbors
 
         self.data = data
         self.indices = np.arange(len(data))
@@ -27,9 +38,12 @@ class Mapper:
         self.run_mapper()
 
     def check_implem(self):
-        if isinstance(self.filter_function, types.LambdaType):
-            return
-        else: raise TypeError('`filter_function` must be callable.')
+
+        if not isinstance(self.filter_function, types.LambdaType):
+            raise TypeError('`filter_function` must be callable.')
+
+        if not issubclass(self.cluster_class, cl.ClusteringTDA):
+            raise TypeError('`cluster_class` must be an instance of clustering.ClusteringTDA.')
 
     def apply_filter_function(self):
 
@@ -75,7 +89,10 @@ class Mapper:
 
             local_to_global = dict(zip(list(range(len(self.data))), keys))
 
-            cluster_obj = self.cluster_class(self.data[keys], self.num_bins)
+            cluster_obj = self.cluster_class(self.data[keys],
+                                             self.num_bins,
+                                             self.eps,
+                                             self.neighbors)
 
             clusters.append( cluster_obj )
 
