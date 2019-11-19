@@ -1,3 +1,4 @@
+import networkx as nx
 import pandas as pd
 import numpy as np
 import types
@@ -16,21 +17,21 @@ class Mapper:
         self.filter_function = filter_function
         self.cluster_class = Clustering
 
-        self.filtered_values = None
+        self.filter_values = None
         self.clusters = None
         self.centroids = None
         self.graph = None
 
-        self._check_implem()
+        self.check_implem()
 
         self.run_mapper()
 
-    def _check_implem(self):
+    def check_implem(self):
         if isinstance(self.filter_function, types.LambdaType):
             return
         else: raise TypeError('`filter_function` must be callable.')
 
-    def _apply_filter_function(self):
+    def apply_filter_function(self):
 
         fm = []
         for i in self.indices:
@@ -44,8 +45,8 @@ class Mapper:
          Return filter function bin membership and bin edges
         """
 
-        finish = self.filtered_values.iloc[-1]
-        start = self.filtered_values.iloc[0]
+        finish = self.filter_values.iloc[-1]
+        start = self.filter_values.iloc[0]
 
         # Size of bins, bin overlap size, bins
         bin_len = (finish-start)/self.num_bins
@@ -54,12 +55,12 @@ class Mapper:
 
         binned_dict = {}
         for edge in bins:
-            bool_corr = self.filtered_values.apply(lambda x: True if x>=edge[0] and x<=edge[1] else False)
-            binned_dict[edge] = self.filtered_values[bool_corr]
+            bool_corr = self.filter_values.apply(lambda x: True if x>=edge[0] and x<=edge[1] else False)
+            binned_dict[edge] = self.filter_values[bool_corr]
 
         return binned_dict, bins
 
-    def _apply_clustering(self):
+    def apply_clustering(self):
         binned_dict, bins = self._bin_data()
 
         partial_clusters = {}
@@ -74,7 +75,7 @@ class Mapper:
 
             local_to_global = dict(zip(list(range(len(self.data))), keys))
 
-            cluster_obj = self.cluster_class(self.data[keys])
+            cluster_obj = self.cluster_class(self.data[keys], self.num_bins)
 
             clusters.append( cluster_obj )
 
@@ -126,10 +127,10 @@ class Mapper:
     def run_mapper(self):
 
         # Store filter function results array
-        self.filtered_values = self._apply_filter_function()
+        self.filter_values = self.apply_filter_function()
 
         # Apply clustering to each of the bins
-        partial_clusters = self._apply_clustering()
+        partial_clusters = self.apply_clustering()
 
         # Build edges between clusters of different bins if they share points
         self._build_graph(partial_clusters)

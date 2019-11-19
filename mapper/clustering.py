@@ -5,6 +5,7 @@ from scipy.spatial.distance import cdist, pdist
 
 
 def find_opt_threshold(hist, bin_edges, limit=3):
+
     sort_ind = np.lexsort((list(range(len(hist))), hist))
 
     for i in sort_ind:
@@ -24,9 +25,9 @@ def find_opt_threshold(hist, bin_edges, limit=3):
 
 class SingleLinkageClustering:
 
-    def __init__(self, data):
+    def __init__(self, data, num_bins):
         self.data = data
-        self.k = params.CLUSTERING_BIN_NUMBER
+        self.k = num_bins
         self.resolution = 0
 
         self.var_vec = [v if v > 0 else 1. for v in np.var(data, axis=0)]
@@ -96,9 +97,9 @@ class SingleLinkageClustering:
 
 class NNC:
 
-    def __init__(self, data):
+    def __init__(self, data, num_bins):
         self.data = data
-        self.k = 8
+        self.k = num_bins
 
         self.var_vec = [v if v > 0 else 1. for v in np.var(data, axis=0)]
 
@@ -155,16 +156,3 @@ class NNC:
                 self.ind_to_c.update(clus_mbrship)
 
                 cluster_name += 1
-
-
-if __name__ == '__main__':
-    data1 = np.random.multivariate_normal(mean=[0, 0], cov=[[50, 0], [0, 40]], size=100)
-
-    data2 = np.random.multivariate_normal(mean=[100, 100], cov=[[30, 0], [0, 30]], size=100)
-
-    data = np.array(list(data1) + list(data2))
-
-    var = SingleLinkageClustering(data)
-    var.run_slc()
-
-    plot_TAD(var, data, 'prova.png')
