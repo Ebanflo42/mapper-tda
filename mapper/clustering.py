@@ -1,5 +1,5 @@
 from scipy.spatial.distance import cdist, pdist
-from pyclustering.cluster.dbscan import dbscan
+from sklearn.cluster import dbscan
 import pandas as pd
 import numpy as np
 import abc
@@ -9,7 +9,7 @@ import abc
 #Abstract Clustering class to be implemented for Mapper
 class ClusteringTDA(abc.ABC):
 
-    def __init__(self, data, num_bins, eps, neighbors):
+    def __init__(self, data, max_clusters, eps, neighbors):
         pass
 
     @abc.abstractmethod
@@ -37,9 +37,9 @@ def find_opt_threshold(hist, bin_edges, limit=3):
 
 class SingleLinkageClustering(ClusteringTDA):
 
-    def __init__(self, data, num_bins, eps, neighbors):
+    def __init__(self, data, max_clusters, eps, neighbors):
         self.data = data
-        self.k = num_bins
+        self.k = max_clusters
         self.resolution = 0
 
         self.var_vec = [v if v > 0 else 1. for v in np.var(data, axis=0)]
@@ -106,12 +106,39 @@ class SingleLinkageClustering(ClusteringTDA):
 
                 cluster_name += 1
 
+class DBSCAN(ClusteringTDA):
+
+    def __init__(self, data, max_clusters, eps, num_neighbors):
+
+        self.data = data
+        self.eps = eps
+        self.num_neighbors = num_neighbors
+
+        self.ind_to_c = {}
+        self.c_to_ind = {}
+
+    def run_clustering(self):
+
+        core_samples, labels = dbscan(self.data, self.eps, self.num_neighbors, metric='euclidean')
+        self.ind_to_c = labels
+
+        for i, c_ind in enumerate(self.ind_to_c):
+            if c_ind == -1:
+                pass
+            else:
+                try:
+                    index = self.c_to_ind.keys().index(c_ind)
+                    self.c_to_ind.keys()[c_ind].append(i)
+                except ValueError:
+                    self.c_to_ind[c_ind] = [i]
+
+        return self.c_to_ind
 
 class NNC(ClusteringTDA):
 
-    def __init__(self, data, num_bins, eps, neighbors):
+    def __init__(self, data, max_clusters, eps, neighbors):
         self.data = data
-        self.k = num_bins
+        self.k = max_clusters
 
         self.var_vec = [v if v > 0 else 1. for v in np.var(data, axis=0)]
 
@@ -165,12 +192,3 @@ class NNC(ClusteringTDA):
                 self.ind_to_c.update(clus_mbrship)
 
                 cluster_name += 1
-
-class DBSCAN(ClusteringTDA):
-
-    def __init__(self, data, num_bins, eps, neighbors):
-        self.clusterer = dbscan(data, eps, neighbors, True)
-
-    def run_clustering(self):
-        self.clusterer.process()
-        return self.clusterer.get_clusters()

@@ -1,4 +1,3 @@
-from pyclustering.cluster.dbscan import dbscan
 import networkx as nx
 import pandas as pd
 import numpy as np
@@ -8,20 +7,23 @@ import clustering as cl
 
 class Mapper:
 
+    #note that max_clusters does not apply to DBSCAN, and eps and num_neighbors only apply to DBSCAN
     def __init__(self,
                  data,
                  filter_function,
                  Clustering,
                  overlap = 50,
-                 num_bins = 10,
-                 eps = 0.01,
-                 neighbors = 10):
+                 num_bins = 20,
+                 max_clusters = 10,
+                 eps = 0.5,
+                 num_neighbors = 10):
 
         self.overlap = overlap
-
         self.num_bins = num_bins
+
+        self.max_clusters = max_clusters
         self.eps = eps
-        self.neighbors = neighbors
+        self.num_neighbors = num_neighbors
 
         self.data = data
         self.indices = np.arange(len(data))
@@ -85,9 +87,9 @@ class Mapper:
             local_to_global = dict(zip(list(range(len(self.data))), keys))
 
             cluster_obj = self.cluster_class(self.data[keys],
-                                             self.num_bins,
+                                             self.max_clusters,
                                              self.eps,
-                                             self.neighbors)
+                                             self.num_neighbors)
 
             cluster_to_ind = cluster_obj.run_clustering()
 
@@ -100,19 +102,19 @@ class Mapper:
 
     def _build_graph(self):
 
-        G = nx.Graph()
+        self.graph = nx.self.graphraph()
 
         for k in range(len(self.clusters) - 1):
             for c in self.clusters[k]:
-                G.add_node(c)
+                self.graph.add_node(c)
 
         for k in range(len(self.clusters) - 1):
             for c1 in self.clusters[k]:
                 for c2 in self.clusters[k + 1]:
                     if set(self.clusters[k][c1]).intersection(self.clusters[k + 1][c2]):
-                        G.add_edge(c1, c2)
+                        self.graph.add_edge(c1, c2)
 
-        self.graph = G
+        self.graph = self.graph
 
     def _get_centroids(self):
 
