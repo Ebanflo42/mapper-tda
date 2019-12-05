@@ -127,8 +127,9 @@ class DBSCAN(ClusteringTDA):
                 pass
             else:
                 try:
-                    index = self.c_to_ind.keys().index(c_ind)
-                    self.c_to_ind.keys()[c_ind].append(i)
+                    keys = list(self.c_to_ind.keys())
+                    index = keys.index(c_ind)
+                    self.c_to_ind[c_ind].append(i)
                 except ValueError:
                     self.c_to_ind[c_ind] = [i]
 

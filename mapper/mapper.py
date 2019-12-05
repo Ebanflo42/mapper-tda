@@ -102,7 +102,7 @@ class Mapper:
 
     def _build_graph(self):
 
-        self.graph = nx.self.graphraph()
+        self.graph = nx.Graph()
 
         for k in range(len(self.clusters) - 1):
             for c in self.clusters[k]:

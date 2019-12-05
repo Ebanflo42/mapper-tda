@@ -1,4 +1,4 @@
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import cdist
 import pandas as pd
 import numpy as np
 
@@ -27,3 +27,20 @@ def eccentricity_p(data, p):
 
 def axis_proj(data, coordinate):
     return (lambda i: data[i][coordinate])
+
+def arc_len(data, traj_len):
+
+    if len(data)%traj_len != 0:
+        raise ValueError('The length of the data set must be a multiple of the trajectory length (all trajectories must have the same length).')
+
+    else:
+
+        num_trajs = len(data)//traj_len
+        arc_len_arr = num_trajs*[traj_len*[None]]
+
+        for i in range(num_trajs - 1):
+            arc_len_arr[i][0] = 0
+            for j in range(traj_len - 1):
+                arc_len_arr[i][j + 1] = arc_len_arr[i][j] + cdist([data[traj_len*i + j]], [data[traj_len*i + j + 1]], metric="euclidean")[0][0] #there's got to be a better way...
+
+        return (lambda i: arc_len_arr[i//traj_len][i%traj_len])
