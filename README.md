@@ -1,4 +1,4 @@
-#mapper-tda
+# mapper-tda
 
 This is a fork of the `mapper-tda` library by Kiran Sanjeevan.
 
